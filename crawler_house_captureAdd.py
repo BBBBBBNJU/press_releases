@@ -159,6 +159,7 @@ def getFailPeopleList(chosen_type):
 
 chosen_type = sys.argv[1]
 failNameList = getFailPeopleList(chosen_type)
+# print failNameList
 housePressReleaseArticleUrlDict = {}
 for name,name_url in housePressReleasePageDict.iteritems():
 	# os.system("echo \"Now processing: "+name+"\" | mail -s \"update\" haoyan.wustl@gmail.com")
@@ -178,7 +179,7 @@ for name,name_url in housePressReleasePageDict.iteritems():
 			else:
 				print ", " + str(len(houseArticleUrlList)) + ' article found'
 				os.system("echo \"Finish processing: "+ name + ", " + "type: "+ chosen_type + ", " + str(len(houseArticleUrlList)) + "article found\" | mail -s \"update\" haoyan.wustl@gmail.com")
-cPickle.dump(housePressReleaseArticleUrlDict,open('housePressReleaseArticleUrlDict_type' + chosen_type,'wb'))
+cPickle.dump(housePressReleaseArticleUrlDict,open('housePressReleaseArticleUrlDict_type' + chosen_type +'add','wb'))
 
 
 
