@@ -32,11 +32,11 @@ def getHouseRepresenUrl():
 		congressPeopleHomeUrlDict[temp_name] = temp_url
 	return congressPeopleHomeUrlDict
 
-def thirdTypeUrlProcess(temp_url):
+def tableTypeUrlProcess(temp_url):
 	try:
 		unicodePage=getunicodePage(temp_url)
-		unicodePage = unicodePage.lower()
-		target='<a href="/news/documentquery\.aspx\?documenttypeid=(.*?)">press releases'
+		# unicodePage = unicodePage.lower()
+		target='<a href="/news/documentquery\.aspx\?DocumentTypeID=(\d+?)">\s{0,2}Press Releases'
 		myItems = re.findall(target,unicodePage,re.DOTALL)
 		return temp_url + '=' + myItems[0]
 	except:
@@ -44,26 +44,28 @@ def thirdTypeUrlProcess(temp_url):
 
 def getCongressPeoplePressReleasePageUrl(congressPeopleHomeUrlDict):
 	# first try some common pattern
-	commonPattern = ['press-releases','media-center/press-releases','media/press-releases','news/documentquery.aspx?DocumentTypeID']
+	commonPattern = ['press-releases','media-center/press-releases','media/press-releases','newsroom/press-releases','press','news/documentquery.aspx?DocumentTypeID']
 	congressPeoplePressReleasePageDict = {}
 	for name, homepage in congressPeopleHomeUrlDict.iteritems():
-		try:
-			succeedFlag = False
-			for i in range(len(commonPattern)):
-				temp_url = homepage + commonPattern[i]
+		succeedFlag = False
+		for i in range(len(commonPattern)):
+			temp_url = homepage + commonPattern[i]
+			try:
 				unicodePage=getunicodePage(temp_url)
-				if "PAGE NOT FOUND" not in unicodePage.upper():
-					succeedFlag = True
-					if i == 3:
-						temp_url = thirdTypeUrlProcess(temp_url)
-					congressPeoplePressReleasePageDict[name] = temp_url
-					break
-			if succeedFlag == False:
-				congressPeoplePressReleasePageDict[name] = 'null'
-		except:
-			print "parse personal page error: " + homepage
+				succeedFlag = True
+				if i == 5:
+					temp_url = tableTypeUrlProcess(temp_url)
+				congressPeoplePressReleasePageDict[name] = temp_url
+				break
+			except urllib2.HTTPError as err:
+					if err.code != 404:
+						continue
+					else:
+						print "parse personal page error code " + str(err.code) + ": " + homepage
+		if succeedFlag == False:
 			congressPeoplePressReleasePageDict[name] = 'null'
 	return congressPeoplePressReleasePageDict
+
 
 congressPeopleHomeUrlDict = getHouseRepresenUrl()
 congressPeoplePressReleasePageDict = getCongressPeoplePressReleasePageUrl(congressPeopleHomeUrlDict)
