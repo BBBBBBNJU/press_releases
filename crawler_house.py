@@ -99,6 +99,17 @@ def getHousePressReleasePageUrl(congressPeopleHomeUrlDict):
 # 				print trueUrl
 # 				print '====='
 
+def typeZerosCrawler(articleMenuPage):
+
+
+
+housePressReleasePageDict = cPickle.load(open('housePressReleasePageDict','rb'))
+for name,name_url in housePressReleasePageDict.iteritems():
+	if name_url != 'null':
+		[temp_type,temp_url] = name_url.split('|')
+		if temp_url != 'null':
+			if temp_type == 0:
+				typeZerosCrawler(articleMenuPage)
 
 
 
