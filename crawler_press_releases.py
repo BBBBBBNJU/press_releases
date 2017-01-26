@@ -58,12 +58,13 @@ def getCongressPeoplePressReleasePageUrl(congressPeopleHomeUrlDict):
 				congressPeoplePressReleasePageDict[name] = temp_url
 				break
 			except urllib2.HTTPError as err:
-					if err.code != 404:
+					if str(err.code) == '404':
 						continue
 					else:
 						print "parse personal page error code " + str(err.code) + ": " + homepage
 		if succeedFlag == False:
 			congressPeoplePressReleasePageDict[name] = 'null'
+		print "finish: " + name
 	return congressPeoplePressReleasePageDict
 
 
