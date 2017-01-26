@@ -35,12 +35,14 @@ def getHouseRepresenUrl():
 def tableTypeUrlProcess(temp_url):
 	try:
 		unicodePage=getunicodePage(temp_url)
-		# unicodePage = unicodePage.lower()
-		target='<a href="/news/documentquery\.aspx\?DocumentTypeID=(\d+?)">\s{0,2}Press Releases'
+		unicodePage = unicodePage.lower()
+		target='<a href="/news/documentquery\.aspx\?documenttypeid=(\d+?)".{0,20}press releases'
 		myItems = re.findall(target,unicodePage,re.DOTALL)
 		return temp_url + '=' + myItems[0]
 	except:
 		return 'null'
+# print tableTypeUrlProcess('http://simpson.house.gov/news/documentquery.aspx?DocumentTypeID')
+
 
 def getCongressPeoplePressReleasePageUrl(congressPeopleHomeUrlDict):
 	# first try some common pattern
