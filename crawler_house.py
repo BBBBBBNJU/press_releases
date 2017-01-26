@@ -81,3 +81,6 @@ for name,name_url in housePressReleasePageDict.iteritems():
 		[temp_type,temp_url] = name_url.split('|')
 		writer.write(name+','+temp_type+','+temp_url+'\n')
 writer.close()
+
+
+
