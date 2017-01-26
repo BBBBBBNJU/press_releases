@@ -68,10 +68,10 @@ def getHousePressReleasePageUrl(congressPeopleHomeUrlDict):
 	return congressPeoplePressReleasePageDict
 
 
-houseHomeUrlDict = getHouseRepresenUrl()
-housePressReleasePageDict = getHousePressReleasePageUrl(houseHomeUrlDict)
-cPickle.dump(houseHomeUrlDict,open('houseHomeUrlDict','wb'))
-cPickle.dump(housePressReleasePageDict,open('housePressReleasePageDict','wb'))
+# houseHomeUrlDict = getHouseRepresenUrl()
+# housePressReleasePageDict = getHousePressReleasePageUrl(houseHomeUrlDict)
+# cPickle.dump(houseHomeUrlDict,open('houseHomeUrlDict','wb'))
+# cPickle.dump(housePressReleasePageDict,open('housePressReleasePageDict','wb'))
 
 # housePressReleasePageDict = cPickle.load(open('housePressReleasePageDict','rb'))
 # writer = open('urlTypeFile.csv','w')
@@ -99,8 +99,8 @@ cPickle.dump(housePressReleasePageDict,open('housePressReleasePageDict','wb'))
 # 				print trueUrl
 # 				print '====='
 
-# housePressReleasePageDict = cPickle.load(open('housePressReleasePageDict','rb'))
-# houseHomeUrlDict = cPickle.load(open('houseHomeUrlDict','rb'))
+housePressReleasePageDict = cPickle.load(open('housePressReleasePageDict','rb'))
+houseHomeUrlDict = cPickle.load(open('houseHomeUrlDict','rb'))
 
 def ordinaryTypeArticleUrlCrawler(articleUrlList, name, articleMenuPage, pageIndex, pageType):
 	try:
@@ -109,17 +109,21 @@ def ordinaryTypeArticleUrlCrawler(articleUrlList, name, articleMenuPage, pageInd
 		else:
 			temp_url = articleMenuPage + "?page=" + pageIndex
 		unicodePage=getunicodePage(temp_url)
-		target='<a href="/' + commonPattern[pageType] + '/(.*?)">(.*?)</a>'
+		if pageType != 2:
+			page_pattern = commonPattern[pageType]
+		else:
+			page_pattern = 'press-releases' # the pattern for type 2 could be press-releases or press-release
+		target='<a href="/' + page_pattern + '/(.*?)">(.*?)</a>'
 		myItems = re.findall(target,unicodePage,re.DOTALL)
 		tempUrlList = []
 		for eachitem in myItems:
-			tempUrlList.append(houseHomeUrlDict[name] + commonPattern[pageType] + '/' + eachitem[0])
-		target='page=(\d{1,2})">next'
-		myItems = re.findall(target,unicodePage,re.DOTALL)
+			tempUrlList.append(houseHomeUrlDict[name] + page_pattern + '/' + eachitem[0])
+		target='page=(\d{1,3})">next'
+		myItems = re.findall(target,unicodePage,flags=re.IGNORECASE)
 		if len(myItems) == 0:
 			return articleUrlList + tempUrlList
 		else:
-			return ordinaryTypeArticleUrlCrawler(articleUrlList + tempUrlList, name, articleMenuPage, myItems[0])
+			return ordinaryTypeArticleUrlCrawler(articleUrlList + tempUrlList, name, articleMenuPage, myItems[0], pageType)
 	except:
 		return articleUrlList
 
@@ -127,7 +131,7 @@ def listTypeArticleUrlCrawler(articleUrlList, name, articleMenuPage, pageIndex):
 	try:
 		temp_url = articleMenuPage + "&Page=" + pageIndex
 		unicodePage=getunicodePage(temp_url)
-		target='<a href="/news/documentsingle\.aspx\?DocumentID=(\d{1,5})">'
+		target='<a href="/news/documentsingle\.aspx\?DocumentID=(\d{1,10})">'
 		myItems = re.findall(target,unicodePage,re.DOTALL)
 		tempUrlList = []
 		for eachitem in myItems:
@@ -141,28 +145,27 @@ def listTypeArticleUrlCrawler(articleUrlList, name, articleMenuPage, pageIndex):
 	except:
 		return articleUrlList
 
-
-# housePressReleaseArticleUrlDict = {}
-# for name,name_url in housePressReleasePageDict.iteritems():
-# 	if name_url != 'null':
-# 		[temp_type,temp_url] = name_url.split('|')
-# 		if temp_url != 'null':
-# 			houseArticleUrlList = []
-# 			if temp_type in ['0','1','2','4','3']:
-# 				1
-# 				# houseArticleUrlList = ordinaryTypeArticleUrlCrawler([], name, temp_url, '0', int(temp_type))
-# 			else:
-# 				houseArticleUrlList = listTypeArticleUrlCrawler([], name, temp_url, '1')
-# 				housePressReleaseArticleUrlDict[name] = houseArticleUrlList
-# 				print name
-# 				print houseArticleUrlList
-# 				if len(houseArticleUrlList) == 0:
-# 					print ", no article list found"
-# 				else:
-# 					print ", " + str(len(houseArticleUrlList)) + ' article found'
-# 				break
-
-# cPickle.dump(housePressReleaseArticleUrlDict,open('housePressReleaseArticleUrlDict','wb'))
+chosen_type = sys.argv[1]
+housePressReleaseArticleUrlDict = {}
+for name,name_url in housePressReleasePageDict.iteritems():
+	# os.system("echo \"Now processing: "+name+"\" | mail -s \"update\" haoyan.wustl@gmail.com")
+	if name_url != 'null':
+		[temp_type,temp_url] = name_url.split('|')
+		if temp_url != 'null' and temp_type == chosen_type:
+			houseArticleUrlList = []
+			if temp_type in ['0','1','2','4','5']:
+				houseArticleUrlList = ordinaryTypeArticleUrlCrawler([], name, temp_url, '0', int(temp_type))
+			else:
+				houseArticleUrlList = listTypeArticleUrlCrawler([], name, temp_url, '1')
+			housePressReleaseArticleUrlDict[name] = houseArticleUrlList
+			print name,
+			if len(houseArticleUrlList) == 0:
+				print ", no article list found"
+				os.system("echo \"Finish processing: "+ name + ", " + "type: "+ chosen_type +", no article list found\" | mail -s \"update\" haoyan.wustl@gmail.com")
+			else:
+				print ", " + str(len(houseArticleUrlList)) + ' article found'
+				os.system("echo \"Finish processing: "+ name + ", " + "type: "+ chosen_type + ", " + str(len(houseArticleUrlList)) + "article found\" | mail -s \"update\" haoyan.wustl@gmail.com")
+cPickle.dump(housePressReleaseArticleUrlDict,open('housePressReleaseArticleUrlDict_type' + chosen_type,'wb'))
 
 
 
