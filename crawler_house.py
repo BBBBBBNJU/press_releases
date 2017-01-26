@@ -11,6 +11,7 @@ import codecs
 import os
 import sys
 htmlentities = ["&quot;","&nbsp;","&amp;","&lt;","&gt;","&OElig;","&oelig;","&Scaron;","&scaron;","&Yuml;","&circ;","&tilde;","&ensp;","&emsp;","&thinsp;","&zwnj;","&zwj;","&lrm;","&rlm;","&ndash;","&mdash;","&lsquo;","&rsquo;","&sbquo;","&ldquo;","&rdquo;","&bdquo;","&dagger;","&Dagger;","&permil;","&lsaquo;"]
+commonPattern = ['press','press-releases','media-center/press-releases','media/press-releases','newsroom/press-releases','news/documentquery.aspx?DocumentTypeID']
 
 def getunicodePage(Url):
     req = urllib2.Request(Url)
@@ -41,12 +42,9 @@ def tableTypeUrlProcess(temp_url):
 		return temp_url + '=' + myItems[0]
 	except:
 		return 'null'
-# print tableTypeUrlProcess('http://simpson.house.gov/news/documentquery.aspx?DocumentTypeID')
 
-
-def getCongressPeoplePressReleasePageUrl(congressPeopleHomeUrlDict):
+def getHousePressReleasePageUrl(congressPeopleHomeUrlDict):
 	# first try some common pattern
-	commonPattern = ['press-releases','media-center/press-releases','media/press-releases','newsroom/press-releases','press','news/documentquery.aspx?DocumentTypeID']
 	congressPeoplePressReleasePageDict = {}
 	for name, homepage in congressPeopleHomeUrlDict.iteritems():
 		succeedFlag = False
@@ -57,7 +55,7 @@ def getCongressPeoplePressReleasePageUrl(congressPeopleHomeUrlDict):
 				succeedFlag = True
 				if i == 5:
 					temp_url = tableTypeUrlProcess(temp_url)
-				congressPeoplePressReleasePageDict[name] = temp_url
+				congressPeoplePressReleasePageDict[name] = str(i) + '|' + temp_url
 				break
 			except urllib2.HTTPError as err:
 					if str(err.code) == '404':
@@ -70,7 +68,16 @@ def getCongressPeoplePressReleasePageUrl(congressPeopleHomeUrlDict):
 	return congressPeoplePressReleasePageDict
 
 
-congressPeopleHomeUrlDict = getHouseRepresenUrl()
-congressPeoplePressReleasePageDict = getCongressPeoplePressReleasePageUrl(congressPeopleHomeUrlDict)
-cPickle.dump(congressPeopleHomeUrlDict,open('congressPeopleHomeUrlDict','wb'))
-cPickle.dump(congressPeoplePressReleasePageDict,open('congressPeoplePressReleasePageDict','wb'))
+# houseHomeUrlDict = getHouseRepresenUrl()
+# housePressReleasePageDict = getHousePressReleasePageUrl(houseHomeUrlDict)
+# cPickle.dump(houseHomeUrlDict,open('houseHomeUrlDict','wb'))
+# cPickle.dump(housePressReleasePageDict,open('housePressReleasePageDict','wb'))
+
+housePressReleasePageDict = cPickle.load(open('housePressReleasePageDict','rb'))
+writer = open('urlTypeFile.csv','w')
+writer.write('lastname,firstname,type,url\n')
+for name,name_url in housePressReleasePageDict.iteritems():
+	if name_url != 'null':
+		[temp_type,temp_url] = name_url.split('|')
+		writer.write(name+','+temp_type+','+temp_url+'\n')
+writer.close()
