@@ -112,7 +112,7 @@ def ordinaryTypeArticleUrlCrawler(articleUrlList, name, articleMenuPage, pageInd
 		if pageType != 2:
 			page_pattern = commonPattern[pageType]
 		else:
-			page_pattern = 'press-releases' # the pattern for type 2 could be press-releases or press-release
+			page_pattern = 'press-release' # the pattern for type 2 could be press-releases or press-release
 		target='<a href="/' + page_pattern + '/(.*?)">(.*?)</a>'
 		myItems = re.findall(target,unicodePage,re.DOTALL)
 		tempUrlList = []
@@ -145,11 +145,24 @@ def listTypeArticleUrlCrawler(articleUrlList, name, articleMenuPage, pageIndex):
 	except:
 		return articleUrlList
 
+def getFailPeopleList(chosen_type):
+	reader = open('./results/output_'+chosen_type+'.log','r')
+	failNameList = []
+	for eachline in reader:
+		if 'no article list found' in eachline:
+			try:
+				[lastname,firstname,result] = eachline.split(',')
+				failNameList.append(lastname + ', ' + firstname.strip())
+			except:
+				continue
+	return failNameList
+
 chosen_type = sys.argv[1]
+failNameList = getFailPeopleList(chosen_type)
 housePressReleaseArticleUrlDict = {}
 for name,name_url in housePressReleasePageDict.iteritems():
 	# os.system("echo \"Now processing: "+name+"\" | mail -s \"update\" haoyan.wustl@gmail.com")
-	if name_url != 'null':
+	if name_url != 'null' and name in failNameList:
 		[temp_type,temp_url] = name_url.split('|')
 		if temp_url != 'null' and temp_type == chosen_type:
 			houseArticleUrlList = []
