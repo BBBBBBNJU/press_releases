@@ -11,7 +11,7 @@ import codecs
 import os
 import sys
 htmlentities = ["&quot;","&nbsp;","&amp;","&lt;","&gt;","&OElig;","&oelig;","&Scaron;","&scaron;","&Yuml;","&circ;","&tilde;","&ensp;","&emsp;","&thinsp;","&zwnj;","&zwj;","&lrm;","&rlm;","&ndash;","&mdash;","&lsquo;","&rsquo;","&sbquo;","&ldquo;","&rdquo;","&bdquo;","&dagger;","&Dagger;","&permil;","&lsaquo;"]
-commonPattern = ['press','press-releases','media-center/press-releases','media/press-releases','newsroom/press-releases','news/documentquery.aspx?DocumentTypeID']
+commonPattern = ['media-center/press-releases','media/press-releases','press-releases','press','newsroom/press-releases','news/documentquery.aspx?DocumentTypeID']
 
 def getunicodePage(Url):
     req = urllib2.Request(Url)
@@ -73,14 +73,32 @@ def getHousePressReleasePageUrl(congressPeopleHomeUrlDict):
 # cPickle.dump(houseHomeUrlDict,open('houseHomeUrlDict','wb'))
 # cPickle.dump(housePressReleasePageDict,open('housePressReleasePageDict','wb'))
 
-housePressReleasePageDict = cPickle.load(open('housePressReleasePageDict','rb'))
-writer = open('urlTypeFile.csv','w')
-writer.write('lastname,firstname,type,url\n')
-for name,name_url in housePressReleasePageDict.iteritems():
-	if name_url != 'null':
-		[temp_type,temp_url] = name_url.split('|')
-		writer.write(name+','+temp_type+','+temp_url+'\n')
-writer.close()
+# housePressReleasePageDict = cPickle.load(open('housePressReleasePageDict','rb'))
+# writer = open('urlTypeFile.csv','w')
+# writer.write('lastname,firstname,type,url\n')
+# for name,name_url in housePressReleasePageDict.iteritems():
+# 	if name_url != 'null':
+# 		[temp_type,temp_url] = name_url.split('|')
+# 		writer.write(name+','+temp_type+','+temp_url+'\n')
+# writer.close()
+
+# def checkUrl(tempUrl):
+#     response = urllib2.urlopen(tempUrl)
+#     redirected = response.geturl() == tempUrl
+#     return redirected,response.geturl()
+
+# housePressReleasePageDict = cPickle.load(open('housePressReleasePageDict','rb'))
+# for name,name_url in housePressReleasePageDict.iteritems():
+# 	if name_url != 'null':
+# 		[temp_type,temp_url] = name_url.split('|')
+# 		if temp_url != 'null':
+# 			checkResult, trueUrl = checkUrl(temp_url)
+# 			if not checkResult:
+# 				print name
+# 				print temp_url
+# 				print trueUrl
+# 				print '====='
+
 
 
 
