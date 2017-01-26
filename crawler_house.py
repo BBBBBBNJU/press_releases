@@ -99,17 +99,46 @@ def getHousePressReleasePageUrl(congressPeopleHomeUrlDict):
 # 				print trueUrl
 # 				print '====='
 
-def typeZerosCrawler(articleMenuPage):
-
-
-
 housePressReleasePageDict = cPickle.load(open('housePressReleasePageDict','rb'))
+houseHomeUrlDict = cPickle.load(open('houseHomeUrlDict','rb'))
+
+def typeZerosArticleUrlCrawler(articleUrlList, name, articleMenuPage, pageIndex):
+	try:
+		if pageIndex == '0':
+			temp_url = articleMenuPage
+		else:
+			temp_url = articleMenuPage + "?page=" + pageIndex
+		unicodePage=getunicodePage(temp_url)
+		target='<a href="/media-center/press-releases/(.*?)">(.*?)</a>'
+		myItems = re.findall(target,unicodePage,re.DOTALL)
+		tempUrlList = []
+		for eachitem in myItems:
+			tempUrlList.append(houseHomeUrlDict[name] + 'media-center/press-releases/' + eachitem[0])
+		
+		target='page=(\d{1,2})">next'
+		myItems = re.findall(target,unicodePage,re.DOTALL)
+		if len(myItems) == 0:
+			return articleUrlList + tempUrlList
+		else:
+			return typeZerosArticleUrlCrawler(articleUrlList + tempUrlList, name, articleMenuPage, myItems[0])
+	except:
+		return articleUrlList
+
+
+housePressReleaseArticleUrlDict = {}
 for name,name_url in housePressReleasePageDict.iteritems():
 	if name_url != 'null':
 		[temp_type,temp_url] = name_url.split('|')
 		if temp_url != 'null':
-			if temp_type == 0:
-				typeZerosCrawler(articleMenuPage)
+			if temp_type == '0':
+				typeZerosArticleUrlList = typeZerosArticleUrlCrawler([], name, temp_url, '0')
+				housePressReleaseArticleUrlDict[name] = typeZerosArticleUrlList
+				print name
+				if len(typeZerosArticleUrlList) == 0:
+					print ", no article list found"
+				else:
+					print ", " + len(typeZerosArticleUrlList) + ' article found'
+cPickle.dump(housePressReleaseArticleUrlDict,open('housePressReleaseArticleUrlDict','wb'))
 
 
 
