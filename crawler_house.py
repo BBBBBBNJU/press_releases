@@ -135,7 +135,7 @@ def listTypeArticleUrlCrawler(articleUrlList, name, articleMenuPage, pageIndex):
 		myItems = re.findall(target,unicodePage,re.DOTALL)
 		tempUrlList = []
 		for eachitem in myItems:
-			tempUrlList.append(houseHomeUrlDict[name] + 'news/documentsingle.aspx?DocumentID=' + eachitem[0])
+			tempUrlList.append(houseHomeUrlDict[name] + 'news/documentsingle.aspx?DocumentID=' + eachitem)
 		target='Page=(\d{1,2})">Next'
 		myItems = re.findall(target,unicodePage,re.DOTALL)
 		if len(myItems) == 0:
@@ -146,28 +146,221 @@ def listTypeArticleUrlCrawler(articleUrlList, name, articleMenuPage, pageIndex):
 		return articleUrlList
 
 
-chosen_type = sys.argv[1]
+# chosen_type = sys.argv[1]
+# housePressReleaseArticleUrlDict = {}
+# for name,name_url in housePressReleasePageDict.iteritems():
+# 	# os.system("echo \"Now processing: "+name+"\" | mail -s \"update\" haoyan.wustl@gmail.com")
+# 	if name_url != 'null':
+# 		[temp_type,temp_url] = name_url.split('|')
+# 		if temp_url != 'null' and temp_type == chosen_type:
+# 			houseArticleUrlList = []
+# 			if temp_type in ['0','1','2','4','5']:
+# 				houseArticleUrlList = ordinaryTypeArticleUrlCrawler([], name, temp_url, '0', int(temp_type))
+# 			else:
+# 				houseArticleUrlList = listTypeArticleUrlCrawler([], name, temp_url, '1')
+# 			housePressReleaseArticleUrlDict[name] = houseArticleUrlList
+# 			print name,
+# 			if len(houseArticleUrlList) == 0:
+# 				print ", no article list found"
+# 				os.system("echo \"Finish processing: "+ name + ", " + "type: "+ chosen_type +", no article list found\" | mail -s \"update\" haoyan.wustl@gmail.com")
+# 			else:
+# 				print ", " + str(len(houseArticleUrlList)) + ' article found'
+# 				os.system("echo \"Finish processing: "+ name + ", " + "type: "+ chosen_type + ", " + str(len(houseArticleUrlList)) + "article found\" | mail -s \"update\" haoyan.wustl@gmail.com")
+# cPickle.dump(housePressReleaseArticleUrlDict,open('housePressReleaseArticleUrlDict_type' + chosen_type,'wb'))
 
-housePressReleaseArticleUrlDict = {}
-for name,name_url in housePressReleasePageDict.iteritems():
-	# os.system("echo \"Now processing: "+name+"\" | mail -s \"update\" haoyan.wustl@gmail.com")
-	if name_url != 'null':
-		[temp_type,temp_url] = name_url.split('|')
-		if temp_url != 'null' and temp_type == chosen_type:
-			houseArticleUrlList = []
-			if temp_type in ['0','1','2','4','5']:
-				houseArticleUrlList = ordinaryTypeArticleUrlCrawler([], name, temp_url, '0', int(temp_type))
-			else:
-				houseArticleUrlList = listTypeArticleUrlCrawler([], name, temp_url, '1')
-			housePressReleaseArticleUrlDict[name] = houseArticleUrlList
-			print name,
-			if len(houseArticleUrlList) == 0:
-				print ", no article list found"
-				os.system("echo \"Finish processing: "+ name + ", " + "type: "+ chosen_type +", no article list found\" | mail -s \"update\" haoyan.wustl@gmail.com")
-			else:
-				print ", " + str(len(houseArticleUrlList)) + ' article found'
-				os.system("echo \"Finish processing: "+ name + ", " + "type: "+ chosen_type + ", " + str(len(houseArticleUrlList)) + "article found\" | mail -s \"update\" haoyan.wustl@gmail.com")
-cPickle.dump(housePressReleaseArticleUrlDict,open('housePressReleaseArticleUrlDict_type' + chosen_type,'wb'))
+def getCleanPage_typeZero(unicodePage):
+	cleanPage = re.sub(r'<li>','xxxxxxxxxxxxxx',unicodePage)
+	cleanPage = re.sub(r'<br/>','xxxxxxxxxxxxxx',cleanPage)
+	cleanPage = re.sub(r'</?\w+[^>]*>','',cleanPage)
+	for h in htmlentities:
+		cleanPage = cleanPage.replace(h, " ")
+	cleanPage = re.sub(r'“','"',cleanPage)
+	cleanPage = re.sub(r'”','"',cleanPage)
+	cleanArticle = ""
+	for eachline in cleanPage.split('\n'):
+		if len(eachline.split()) > 20 and ('jQuery' not in eachline) and ('http' not in eachline) and ('{' not in eachline) and ('}' not in eachline) and ('xxxxxxxxxxxxxx' not in eachline):
+			cleanArticle +=  re.sub(r'</?\w+[^>]*>','',eachline)
+	errorFreeArticle = ""
+	for eachElement in cleanArticle:
+		try:
+			eachElement.encode('ascii')
+			errorFreeArticle += eachElement
+		except:
+			continue
+	return errorFreeArticle
+
+def zeroTypeGetArticle(oneUrl):
+	try:
+		unicodePage=getunicodePage(oneUrl)
+		article = getCleanPage_typeZero(unicodePage)
+		return article
+	except:
+		return ""
+
+def getCleanPage_typeOne(unicodePage):
+	cleanPage = re.sub(r'<li>','xxxxxxxxxxxxxx',unicodePage)
+	cleanPage = re.sub(r'<br/>','xxxxxxxxxxxxxx',cleanPage)
+	cleanPage = re.sub(r'</?\w+[^>]*>','',cleanPage)
+	for h in htmlentities:
+		cleanPage = cleanPage.replace(h, " ")
+	cleanPage = re.sub(r'“','"',cleanPage)
+	cleanPage = re.sub(r'”','"',cleanPage)
+	cleanArticle = ""
+	for eachline in cleanPage.split('\n'):
+		if len(eachline.split()) > 20 and ('jQuery' not in eachline) and ('http' not in eachline) and ('{' not in eachline) and ('}' not in eachline) and ('xxxxxxxxxxxxxx' not in eachline):
+			cleanArticle +=  re.sub(r'</?\w+[^>]*>','',eachline)
+	errorFreeArticle = ""
+	for eachElement in cleanArticle:
+		try:
+			eachElement.encode('ascii')
+			errorFreeArticle += eachElement
+		except:
+			continue
+	return errorFreeArticle
+
+def oneTypeGetArticle(oneUrl):
+	try:
+		unicodePage=getunicodePage(oneUrl)
+		article = getCleanPage_typeOne(unicodePage)
+		return article
+	except:
+		return ""
+
+def getCleanPage_typeTwo(unicodePage):
+	cleanPage = re.sub(r'<li>','xxxxxxxxxxxxxx',unicodePage)
+	cleanPage = re.sub(r'<br/>','xxxxxxxxxxxxxx',cleanPage)
+	cleanPage = re.sub(r'</?\w+[^>]*>','',cleanPage)
+	for h in htmlentities:
+		cleanPage = cleanPage.replace(h, " ")
+	cleanPage = re.sub(r'“','"',cleanPage)
+	cleanPage = re.sub(r'”','"',cleanPage)
+	cleanArticle = ""
+	for eachline in cleanPage.split('\n'):
+		if len(eachline.split()) > 20 and ('jQuery' not in eachline) and ('http' not in eachline) and ('{' not in eachline) and ('}' not in eachline) and ('xxxxxxxxxxxxxx' not in eachline):
+			cleanArticle +=  re.sub(r'</?\w+[^>]*>','',eachline)
+	errorFreeArticle = ""
+	for eachElement in cleanArticle:
+		try:
+			eachElement.encode('ascii')
+			errorFreeArticle += eachElement
+		except:
+			continue
+	return errorFreeArticle
+
+def getCleanPage_typeTwo_oneParagraph(unicodePage):
+	target='class="contentdata">(.*?)<div class="push">'
+	myItems = re.findall(target,unicodePage,re.DOTALL)
+	cleanArticle = myItems[0]
+	cleanArticle = re.sub(r'</?\w+[^>]*>','',cleanArticle)
+	for h in htmlentities:
+		cleanArticle = cleanArticle.replace(h, " ")
+	cleanArticle = re.sub(r'“','"',cleanArticle)
+	cleanArticle = re.sub(r'”','"',cleanArticle)
+	errorFreeArticle = ""
+	for eachElement in cleanArticle:
+		try:
+			eachElement.encode('ascii')
+			errorFreeArticle += eachElement
+		except:
+			continue
+	return errorFreeArticle
+
+def twoTypeGetArticle(oneUrl):
+	try:
+		unicodePage=getunicodePage(oneUrl)
+		if len(unicodePage.split('\n')) > 10:
+			article = getCleanPage_typeTwo(unicodePage)
+		else:
+			article = getCleanPage_typeTwo_oneParagraph(unicodePage)
+		return article
+	except:
+		return ""
+
+def getCleanPage_typeThree(unicodePage):
+	cleanPage = re.sub(r'<li>','xxxxxxxxxxxxxx',unicodePage)
+	cleanPage = re.sub(r'<br/>','xxxxxxxxxxxxxx',cleanPage)
+	cleanPage = re.sub(r'</?\w+[^>]*>','',cleanPage)
+	for h in htmlentities:
+		cleanPage = cleanPage.replace(h, " ")
+	cleanPage = re.sub(r'“','"',cleanPage)
+	cleanPage = re.sub(r'”','"',cleanPage)
+	cleanArticle = ""
+	for eachline in cleanPage.split('\n'):
+		if len(eachline.split()) > 20 and ('jQuery' not in eachline) and ('http' not in eachline) and ('{' not in eachline) and ('}' not in eachline) and ('xxxxxxxxxxxxxx' not in eachline):
+			cleanArticle +=  re.sub(r'</?\w+[^>]*>','',eachline)
+	errorFreeArticle = ""
+	for eachElement in cleanArticle:
+		try:
+			eachElement.encode('ascii')
+			errorFreeArticle += eachElement
+		except:
+			continue
+	return errorFreeArticle
+
+def threeTypeGetArticle(oneUrl):
+	try:
+		unicodePage=getunicodePage(oneUrl)
+		article = getCleanPage_typeThree(unicodePage)
+		return article
+	except:
+		return ""
+
+def getCleanPage_typeFourFive(unicodePage):
+	cleanPage = re.sub(r'<li>','xxxxxxxxxxxxxx',unicodePage)
+	cleanPage = re.sub(r'<br/>','xxxxxxxxxxxxxx',cleanPage)
+	cleanPage = re.sub(r'</?\w+[^>]*>','',cleanPage)
+	for h in htmlentities:
+		cleanPage = cleanPage.replace(h, " ")
+	cleanPage = re.sub(r'“','"',cleanPage)
+	cleanPage = re.sub(r'”','"',cleanPage)
+	cleanArticle = ""
+	for eachline in cleanPage.split('\n'):
+		if len(eachline.split()) > 20 and ('jQuery' not in eachline) and ('http' not in eachline) and ('{' not in eachline) and ('}' not in eachline) and ('xxxxxxxxxxxxxx' not in eachline):
+			cleanArticle +=  re.sub(r'</?\w+[^>]*>','',eachline)
+	errorFreeArticle = ""
+	for eachElement in cleanArticle:
+		try:
+			eachElement.encode('ascii')
+			errorFreeArticle += eachElement
+		except:
+			continue
+	return errorFreeArticle
+
+def fourFiveTypeGetArticle(oneUrl):
+	try:
+		unicodePage=getunicodePage(oneUrl)
+		article = getCleanPage_typeFourFive(unicodePage)
+		return article
+	except:
+		return ""
+
+chosen_type = sys.argv[1]
+housePressReleaseArticleUrlDict = cPickle.load(open('./results/housePressReleaseArticleUrlDict_type'+chosen_type,'rb'))
+housePressReleaseArticleDict = {}
+for name, urlList in housePressReleaseArticleUrlDict.iteritems():
+	if len(urlList) > 0:
+		housePressReleaseArticleDict[name] = []
+		urlList = list(set(urlList))
+		for eachurl in urlList:
+			if chosen_type == '0':
+				tempArticle = zeroTypeGetArticle(eachurl)
+			elif chosen_type == '1':
+				tempArticle = oneTypeGetArticle(eachurl)
+			elif chosen_type == '2':
+				tempArticle = twoTypeGetArticle(eachurl)
+			elif chosen_type == '3':
+				tempArticle = threeTypeGetArticle(eachurl)
+			elif chosen_type == '4' or chosen_type == '5':
+				tempArticle = fourFiveTypeGetArticle(eachurl)
+
+			if len(tempArticle) > 0:
+				housePressReleaseArticleDict[name].append(tempArticle)
+
+		os.system("echo \"Finish processing: "+ name + ", " + str(len(housePressReleaseArticleDict[name])) + "articles\" | mail -s \"update\" haoyan.wustl@gmail.com")
+		
+cPickle.dump(housePressReleaseArticleDict,open('housePressReleaseArticleDict_type' + chosen_type,'wb'))
+
+
 
 
 
