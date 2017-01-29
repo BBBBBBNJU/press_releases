@@ -25,17 +25,19 @@ def checkUrl(tempUrl):
 
 
 def getSenateHomeUrl():
-	unicodePage=getunicodePage("http://www.senate.gov/senators/contact/")
+	reader = open('senate_home_page.html','r')
+	unicodePage = ""
+	for eachline in reader:
+		unicodePage += eachline
 	congressPeopleHomeUrlDict = {}
-	target='<TD class="contenttext" align="left"><a href="(.*?)">(.*?)</a>'
+	target='contenttext" align="left"><a href="(.*?)">(.*?)\n(.*?)</a>'
 	myItems = re.findall(target,unicodePage,re.DOTALL)
 	for i in range(len(myItems)):
 		temp_url = myItems[i][0]
 		temp_name = myItems[i][1].strip()
-		redirected, trueUrl = checkUrl(temp_url)
-		if not trueUrl.endswith('/'):
-			trueUrl += '/'
-		congressPeopleHomeUrlDict[temp_name] = trueUrl
+		if not temp_url.endswith('/'):
+			temp_url += '/'
+		congressPeopleHomeUrlDict[temp_name] = temp_url
 	return congressPeopleHomeUrlDict
 
 senateHomeUrlDict = getSenateHomeUrl()
