@@ -12,23 +12,16 @@ import codecs
 import os
 import sys
 htmlentities = ["&quot;","&nbsp;","&amp;","&lt;","&gt;","&OElig;","&oelig;","&Scaron;","&scaron;","&Yuml;","&circ;","&tilde;","&ensp;","&emsp;","&thinsp;","&zwnj;","&zwj;","&lrm;","&rlm;","&ndash;","&mdash;","&lsquo;","&rsquo;","&sbquo;","&ldquo;","&rdquo;","&bdquo;","&dagger;","&Dagger;","&permil;","&lsaquo;"]
-# def getunicodePage(Url):
-#     page = requests.get(Url)
-#     html_contents = page.text
-#     unicodePage = ""
-#     for eachElement in html_contents:
-#         try:
-#             eachElement.decode("ascii",'ignore')
-#             unicodePage += eachElement
-#         except:
-#             continue
-#     return unicodePage
-
 def getunicodePage(Url):
-    req = urllib2.Request(Url)
-    myResponse = urllib2.urlopen(req)
-    myPage = myResponse.read()
-    unicodePage = myPage.decode("utf-8",'ignore')
+    page = requests.get(Url)
+    html_contents = page.text
+    unicodePage = ""
+    for eachElement in html_contents:
+        try:
+            eachElement.decode("ascii",'ignore')
+            unicodePage += eachElement
+        except:
+            continue
     return unicodePage
 
 def checkUrl(tempUrl):
@@ -40,22 +33,18 @@ def checkUrl(tempUrl):
 
 def getSenatePRHomeUrl(tempUrl):
 	pressReleaseHomeUrl = ""
-	print checkUrl(tempUrl)
 	unicodePage = getunicodePage(tempUrl)
-	print unicodePage
 	allLines = unicodePage.split('\n')
 	for i in range(len(allLines)):
 		lower_line = allLines[i].lower()
-		if 'press' in lower_line and 'release' in lower_line and 'href' in lower_line:
-			target='<a href="(.*?)press(.{3,10})">'
+		if (('press' in lower_line and 'release' in lower_line) or ('new' in lower_line and 'release' in lower_line)) and 'href' in lower_line:
+			target='<a href="(.*?)press(.{0,10})">'
 			myItems = re.findall(target,lower_line,re.DOTALL)
 			if len(myItems) > 0:
 				pressReleaseHomeUrl = myItems[0][0] + 'press' + myItems[0][1]
 				break
-	print pressReleaseHomeUrl
 	return pressReleaseHomeUrl
 
-getSenatePRHomeUrl('https://www.warner.senate.gov/')
 
 # senatePressReleaseHomePageDict_update = {}
 # senatePressReleaseHomePageDict = {}
@@ -72,19 +61,17 @@ getSenatePRHomeUrl('https://www.warner.senate.gov/')
 # 			senatePressReleaseHomePageDict_update[name] = senateHomeUrlDict[name] + pressReleaseHomePage[1:len(pressReleaseHomePage)]
 # 	if 'href="/press-releases"' in pressReleaseHomePage:
 # 		senatePressReleaseHomePageDict_update[name] =  senateHomeUrlDict[name]+ "/press-releases/"
-# senatePressReleaseHomePageDict_update['Inhofe, James M.'] = 'http://www.inhofe.senate.gov/newsroom/press-releases/'
 
 # cPickle.dump(senatePressReleaseHomePageDict_update,open('senatePRHomePageDict','wb'))
 
 senateHomeUrlDict = cPickle.load(open('senateHomeUrlDict','rb'))
-print senateHomeUrlDict['Wicker, Roger F.']
-# senatePRHomePageDict = cPickle.load(open('senatePRHomePageDict','rb'))
-# for name, homeurl in senateHomeUrlDict.iteritems():
-# 	if not senatePRHomePageDict.has_key(name):
-# 		print name
-# 		print homeurl
-# 		print '========'
-
-
+senatePRHomePageDict = cPickle.load(open('senatePRHomePageDict','rb'))
+for name, homeurl in senateHomeUrlDict.iteritems():
+	# if not senatePRHomePageDict.has_key(name):
+		print name
+		print homeurl
+		print '\n'
+		print '==========='
+		
 
 
