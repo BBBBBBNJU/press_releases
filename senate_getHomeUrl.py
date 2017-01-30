@@ -29,7 +29,6 @@ def checkUrl(tempUrl):
     redirected = response.geturl() == tempUrl
     return redirected,response.geturl()
 
-
 def getSenateHomeUrl():
 	reader = open('senate_home_page.html','r')
 	unicodePage = ""
@@ -50,24 +49,31 @@ def getSenateHomeUrl():
 		congressPeopleHomeUrlDict[temp_name] = [temp_url_public,temp_url,temp_url_https]
 	return congressPeopleHomeUrlDict
 
+def correctUrl(tempUrl):
+	unicodePage = getunicodePage(tempUrl)
+	if "WEBSITE TEMPORARILY UNAVAILABLE DUE TO MAINTENANCE" in unicodePage:
+		return False
+	if 'http-equiv="refresh"' in unicodePage:
+		return False
+	return True
+
 senateHomeUrlDict_updated = {}
-senateHomeUrlDict_updated_updated = {}
 senateHomeUrlDict = getSenateHomeUrl()
-for name, senator_home_pages in senateHomeUrlDict.iteritems():
-	unicodePage = getunicodePage(senator_home_pages[2])
-	if "WEBSITE TEMPORARILY UNAVAILABLE DUE TO MAINTENANCE" not in unicodePage:
+
+for name, senator_home_pages in senateHomeUrlDict.iteritems():	
+	tempLabelList = []
+	for i in range(3):
+		tempLabel = correctUrl(senator_home_pages[i])
+		tempLabelList.append(tempLabel)
+	if tempLabelList[0]:
+		senateHomeUrlDict_updated[name] = senator_home_pages[0]
+		continue
+	if tempLabelList[2]:
 		senateHomeUrlDict_updated[name] = senator_home_pages[2]
-	else:
-		unicodePage = getunicodePage(senator_home_pages[1])
-		if "WEBSITE TEMPORARILY UNAVAILABLE DUE TO MAINTENANCE" not in unicodePage:
-			senateHomeUrlDict_updated[name] = senator_home_pages[1]
-		else:
-			senateHomeUrlDict_updated[name] = senator_home_pages[0]
+		continue
+	if tempLabelList[1]:
+		senateHomeUrlDict_updated[name] = senator_home_pages[1]
+		continue
 
-for name, senator_home_page in senateHomeUrlDict_updated.iteritems():
-	unicodePage = getunicodePage(senator_home_page)
-	if "WEBSITE TEMPORARILY UNAVAILABLE DUE TO MAINTENANCE" not in unicodePage:
-		senateHomeUrlDict_updated_updated[name] = senator_home_page
-
-cPickle.dump(senateHomeUrlDict_updated_updated,open('senateHomeUrlDict','wb'))
+cPickle.dump(senateHomeUrlDict_updated,open('senateHomeUrlDict','wb'))
 

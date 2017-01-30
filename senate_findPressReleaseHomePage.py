@@ -12,27 +12,37 @@ import codecs
 import os
 import sys
 htmlentities = ["&quot;","&nbsp;","&amp;","&lt;","&gt;","&OElig;","&oelig;","&Scaron;","&scaron;","&Yuml;","&circ;","&tilde;","&ensp;","&emsp;","&thinsp;","&zwnj;","&zwj;","&lrm;","&rlm;","&ndash;","&mdash;","&lsquo;","&rsquo;","&sbquo;","&ldquo;","&rdquo;","&bdquo;","&dagger;","&Dagger;","&permil;","&lsaquo;"]
+# def getunicodePage(Url):
+#     page = requests.get(Url)
+#     html_contents = page.text
+#     unicodePage = ""
+#     for eachElement in html_contents:
+#         try:
+#             eachElement.decode("ascii",'ignore')
+#             unicodePage += eachElement
+#         except:
+#             continue
+#     return unicodePage
+
 def getunicodePage(Url):
-    page = requests.get(Url)
-    html_contents = page.text
-    unicodePage = ""
-    for eachElement in html_contents:
-    	try:
-    		eachElement.decode("ascii",'ignore')
-    		unicodePage += eachElement
-    	except:
-    		continue
+    req = urllib2.Request(Url)
+    myResponse = urllib2.urlopen(req)
+    myPage = myResponse.read()
+    unicodePage = myPage.decode("utf-8",'ignore')
     return unicodePage
 
 def checkUrl(tempUrl):
-    response = urllib2.urlopen(tempUrl)
+    req = urllib2.Request(tempUrl)
+    response = urllib2.urlopen(req)
     redirected = response.geturl() == tempUrl
     return redirected,response.geturl()
 
 
 def getSenatePRHomeUrl(tempUrl):
 	pressReleaseHomeUrl = ""
+	print checkUrl(tempUrl)
 	unicodePage = getunicodePage(tempUrl)
+	print unicodePage
 	allLines = unicodePage.split('\n')
 	for i in range(len(allLines)):
 		lower_line = allLines[i].lower()
@@ -42,8 +52,10 @@ def getSenatePRHomeUrl(tempUrl):
 			if len(myItems) > 0:
 				pressReleaseHomeUrl = myItems[0][0] + 'press' + myItems[0][1]
 				break
-
+	print pressReleaseHomeUrl
 	return pressReleaseHomeUrl
+
+getSenatePRHomeUrl('https://www.warner.senate.gov/')
 
 # senatePressReleaseHomePageDict_update = {}
 # senatePressReleaseHomePageDict = {}
@@ -65,12 +77,13 @@ def getSenatePRHomeUrl(tempUrl):
 # cPickle.dump(senatePressReleaseHomePageDict_update,open('senatePRHomePageDict','wb'))
 
 senateHomeUrlDict = cPickle.load(open('senateHomeUrlDict','rb'))
-senatePRHomePageDict = cPickle.load(open('senatePRHomePageDict','rb'))
-for name, homeurl in senateHomeUrlDict.iteritems():
-	if not senatePRHomePageDict.has_key(name):
-		print name
-		print homeurl
-		print '========'
+print senateHomeUrlDict['Wicker, Roger F.']
+# senatePRHomePageDict = cPickle.load(open('senatePRHomePageDict','rb'))
+# for name, homeurl in senateHomeUrlDict.iteritems():
+# 	if not senatePRHomePageDict.has_key(name):
+# 		print name
+# 		print homeurl
+# 		print '========'
 
 
 
