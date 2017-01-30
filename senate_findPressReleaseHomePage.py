@@ -30,44 +30,48 @@ def checkUrl(tempUrl):
     return redirected,response.geturl()
 
 
-def getSenateHomeUrl():
-	reader = open('senate_home_page.html','r')
-	unicodePage = ""
-	for eachline in reader:
-		unicodePage += eachline
-	congressPeopleHomeUrlDict = {}
-	target='contenttext" align="left"><a href="(.*?)">(.*?)\n(.*?)</a>'
-	myItems = re.findall(target,unicodePage,re.DOTALL)
-	for i in range(len(myItems)):
-		temp_url = myItems[i][0]
-		temp_name = myItems[i][1].strip()
-		if not temp_url.endswith('/'):
-			temp_url += '/'
-		if temp_url[0:4] != 'http':
-			temp_url = 'http:' + temp_url
-		temp_url_https = 'https://' + temp_url[7:len(temp_url)]
-		temp_url_public = temp_url + 'public/'
-		congressPeopleHomeUrlDict[temp_name] = [temp_url_public,temp_url,temp_url_https]
-	return congressPeopleHomeUrlDict
+def getSenatePRHomeUrl(tempUrl):
+	pressReleaseHomeUrl = ""
+	unicodePage = getunicodePage(tempUrl)
+	allLines = unicodePage.split('\n')
+	for i in range(len(allLines)):
+		lower_line = allLines[i].lower()
+		if 'press' in lower_line and 'release' in lower_line and 'href' in lower_line:
+			target='<a href="(.*?)press(.{3,10})">'
+			myItems = re.findall(target,lower_line,re.DOTALL)
+			if len(myItems) > 0:
+				pressReleaseHomeUrl = myItems[0][0] + 'press' + myItems[0][1]
+				break
 
-senateHomeUrlDict_updated = {}
-senateHomeUrlDict_updated_updated = {}
-senateHomeUrlDict = getSenateHomeUrl()
-for name, senator_home_pages in senateHomeUrlDict.iteritems():
-	unicodePage = getunicodePage(senator_home_pages[2])
-	if "WEBSITE TEMPORARILY UNAVAILABLE DUE TO MAINTENANCE" not in unicodePage:
-		senateHomeUrlDict_updated[name] = senator_home_pages[2]
-	else:
-		unicodePage = getunicodePage(senator_home_pages[1])
-		if "WEBSITE TEMPORARILY UNAVAILABLE DUE TO MAINTENANCE" not in unicodePage:
-			senateHomeUrlDict_updated[name] = senator_home_pages[1]
-		else:
-			senateHomeUrlDict_updated[name] = senator_home_pages[0]
+	return pressReleaseHomeUrl
 
-for name, senator_home_page in senateHomeUrlDict_updated.iteritems():
-	unicodePage = getunicodePage(senator_home_page)
-	if "WEBSITE TEMPORARILY UNAVAILABLE DUE TO MAINTENANCE" not in unicodePage:
-		senateHomeUrlDict_updated_updated[name] = senator_home_page
+# senatePressReleaseHomePageDict_update = {}
+# senatePressReleaseHomePageDict = {}
+# senateHomeUrlDict = cPickle.load(open('senateHomeUrlDict','rb'))
+# for name, homePage in senateHomeUrlDict.iteritems():
+# 	pressReleaseHomePageUrl = getSenatePRHomeUrl(homePage)
+# 	if len(pressReleaseHomePageUrl) > 0:
+# 		senatePressReleaseHomePageDict[name] = pressReleaseHomePageUrl
+# for name, pressReleaseHomePage in senatePressReleaseHomePageDict.iteritems():
+# 	if '<' not in pressReleaseHomePage:
+# 		if 'http' in pressReleaseHomePage:
+# 			senatePressReleaseHomePageDict_update[name] = pressReleaseHomePage
+# 		else:
+# 			senatePressReleaseHomePageDict_update[name] = senateHomeUrlDict[name] + pressReleaseHomePage[1:len(pressReleaseHomePage)]
+# 	if 'href="/press-releases"' in pressReleaseHomePage:
+# 		senatePressReleaseHomePageDict_update[name] =  senateHomeUrlDict[name]+ "/press-releases/"
+# senatePressReleaseHomePageDict_update['Inhofe, James M.'] = 'http://www.inhofe.senate.gov/newsroom/press-releases/'
 
-cPickle.dump(senateHomeUrlDict_updated_updated,open('senateHomeUrlDict','wb'))
+# cPickle.dump(senatePressReleaseHomePageDict_update,open('senatePRHomePageDict','wb'))
+
+senateHomeUrlDict = cPickle.load(open('senateHomeUrlDict','rb'))
+senatePRHomePageDict = cPickle.load(open('senatePRHomePageDict','rb'))
+for name, homeurl in senateHomeUrlDict.iteritems():
+	if not senatePRHomePageDict.has_key(name):
+		print name
+		print homeurl
+		print '========'
+
+
+
 
