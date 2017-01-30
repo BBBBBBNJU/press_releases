@@ -65,7 +65,7 @@ for name, homeUrls in senateUrlDict.iteritems():
 	if not homeUrl.endswith('/'):
 		homeUrl += '/'
 	
-	# tyep 1 
+	# type 1 
 	if 'index.cfm/' in PR_homeUrl and chosen_type == '1':
 		senateArticleUrlList = oneTypeArticleUrlCrawler([], PR_homeUrl[0:len(PR_homeUrl)-1], homeUrl , '1')
 		print name,
