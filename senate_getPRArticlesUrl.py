@@ -43,16 +43,36 @@ def oneTypeArticleUrlCrawler(articleUrlList, PR_homeUrl, senateHomeUrl, pageInde
 		tempUrlList = []
 		for eachitem in myItems:
 			tempUrlList.append(eachitem)
-		target='page=(.*?)">Next'
+		target='page=(.*?)"(.*?)>Next'
 		myItems = re.findall(target,unicodePage,re.IGNORECASE)
 		print myItems
 		if len(myItems) == 0:
 			return articleUrlList + tempUrlList
 		else:
-			return oneTypeArticleUrlCrawler(articleUrlList + tempUrlList, PR_homeUrl, senateHomeUrl, myItems[0])
+			return oneTypeArticleUrlCrawler(articleUrlList + tempUrlList, PR_homeUrl, senateHomeUrl, myItems[0][0])
 	except:
 		return articleUrlList
 
+def twoTypeArticleUrlCrawler(articleUrlList, PR_homeUrl, senateHomeUrl, pageIndex):
+	try:
+		temp_url = PR_homeUrl + "?PageNum_rs=" + pageIndex + '&'
+		unicodePage=getunicodePage(temp_url)
+		startIndex = PR_homeUrl.index('gov/')
+		temp_pattern = PR_homeUrl[startIndex + 4 : len(PR_homeUrl)]
+		target = temp_pattern + '/(.*?)"'
+		myItems = re.findall(target,unicodePage,re.DOTALL)
+		tempUrlList = []
+		for eachitem in myItems:
+			tempUrlList.append(PR_homeUrl + '/' + eachitem.strip())
+		target='\?PageNum_rs=(.*?)&">next'
+		myItems = re.findall(target,unicodePage,re.IGNORECASE)
+		print myItems
+		if len(myItems) == 0:
+			return articleUrlList + tempUrlList
+		else:
+			return twoTypeArticleUrlCrawler(articleUrlList + tempUrlList, PR_homeUrl, senateHomeUrl, myItems[0])
+	except:
+		return articleUrlList
 
 chosen_type = sys.argv[1]
 senateUrlDict = cPickle.load(open('senateUrlDict','rb'))
@@ -64,8 +84,8 @@ for name, homeUrls in senateUrlDict.iteritems():
 	homeUrl = homeUrls[0]
 	if not homeUrl.endswith('/'):
 		homeUrl += '/'
-	
-	# type 1 
+	tempUnicode = getunicodePage(PR_homeUrl)
+	# type 1, similar to the list one in house
 	if 'index.cfm/' in PR_homeUrl and chosen_type == '1':
 		senateArticleUrlList = oneTypeArticleUrlCrawler([], PR_homeUrl[0:len(PR_homeUrl)-1], homeUrl , '1')
 		print name,
@@ -76,6 +96,23 @@ for name, homeUrls in senateUrlDict.iteritems():
 			print ", " + str(len(senateArticleUrlList)) + ' article found'
 			os.system("echo \"Finish processing: "+ name + ", " + "type: "+ chosen_type + ", " + str(len(senateArticleUrlList)) + "article found\" | mail -s \"update\" haoyan.wustl@gmail.com")
 			senatePressReleaseArticleUrlDict[name] = senateArticleUrlList
+	
+	# type 2, url start with the PR_homeUrl-homeUrl, probably has something in middle, next page is ?PageNum_rs=2&
+	if '?PageNum_rs=' in tempUnicode and chosen_type == '2':
+		senateArticleUrlList = twoTypeArticleUrlCrawler([], PR_homeUrl[0:len(PR_homeUrl)-1], homeUrl , '1')
+		print name,
+		if len(senateArticleUrlList) == 0:
+			print ", no article list found"
+			os.system("echo \"Finish processing: "+ name + ", " + "type: "+ chosen_type +", no article list found\" | mail -s \"update\" haoyan.wustl@gmail.com")
+		else:
+			print ", " + str(len(senateArticleUrlList)) + ' article found'
+			os.system("echo \"Finish processing: "+ name + ", " + "type: "+ chosen_type + ", " + str(len(senateArticleUrlList)) + "article found\" | mail -s \"update\" haoyan.wustl@gmail.com")
+			senatePressReleaseArticleUrlDict[name] = senateArticleUrlList
+		print senateArticleUrlList
+
+	# # type 3, url start with the PR_homeUrl-homeUrl, probably has something in middle, next page is ?page=1
+
+
 	cPickle.dump(senatePressReleaseArticleUrlDict,open('senatePressReleaseArticleUrlDict_type' + chosen_type,'wb'))
 
 
