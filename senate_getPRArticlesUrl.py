@@ -74,6 +74,25 @@ def twoTypeArticleUrlCrawler(articleUrlList, PR_homeUrl, senateHomeUrl, pageInde
 	except:
 		return articleUrlList
 
+def threeTypeArticleUrlCrawler(articleUrlList, PR_homeUrl, senateHomeUrl, pageIndex): 
+	try:
+		temp_url = PR_homeUrl + "?page=" + pageIndex
+		unicodePage=getunicodePage(temp_url)
+		target = '<h2><a href="/content/(.*?)"'
+		myItems = re.findall(target,unicodePage,re.DOTALL)
+		tempUrlList = []
+		for eachitem in myItems:
+			tempUrlList.append(senateHomeUrl + 'content/' + eachitem.strip())
+		target='\?page=(.*?)">next'
+		myItems = re.findall(target,unicodePage,re.IGNORECASE)
+		print myItems
+		if len(myItems) == 0:
+			return articleUrlList + tempUrlList
+		else:
+			return threeTypeArticleUrlCrawler(articleUrlList + tempUrlList, PR_homeUrl, senateHomeUrl, myItems[0])
+	except:
+		return articleUrlList
+
 chosen_type = sys.argv[1]
 senateUrlDict = cPickle.load(open('senateUrlDict','rb'))
 senatePressReleaseArticleUrlDict = {}
@@ -108,9 +127,18 @@ for name, homeUrls in senateUrlDict.iteritems():
 			print ", " + str(len(senateArticleUrlList)) + ' article found'
 			os.system("echo \"Finish processing: "+ name + ", " + "type: "+ chosen_type + ", " + str(len(senateArticleUrlList)) + "article found\" | mail -s \"update\" haoyan.wustl@gmail.com")
 			senatePressReleaseArticleUrlDict[name] = senateArticleUrlList
-		print senateArticleUrlList
 
-	# # type 3, url start with the PR_homeUrl-homeUrl, probably has something in middle, next page is ?page=1
+	# type 3, url start with the PR_homeUrl-homeUrl, probably has something in middle, next page is ?page=1
+	if '?page=' in tempUnicode and 'index.cfm' not in tempUnicode and chosen_type == '3':
+		senateArticleUrlList = threeTypeArticleUrlCrawler([], PR_homeUrl[0:len(PR_homeUrl)-1], homeUrl , '0')
+		print name,
+		if len(senateArticleUrlList) == 0:
+			print ", no article list found"
+			os.system("echo \"Finish processing: "+ name + ", " + "type: "+ chosen_type +", no article list found\" | mail -s \"update\" haoyan.wustl@gmail.com")
+		else:
+			print ", " + str(len(senateArticleUrlList)) + ' article found'
+			os.system("echo \"Finish processing: "+ name + ", " + "type: "+ chosen_type + ", " + str(len(senateArticleUrlList)) + "article found\" | mail -s \"update\" haoyan.wustl@gmail.com")
+			senatePressReleaseArticleUrlDict[name] = senateArticleUrlList
 
 
 	cPickle.dump(senatePressReleaseArticleUrlDict,open('senatePressReleaseArticleUrlDict_type' + chosen_type,'wb'))
