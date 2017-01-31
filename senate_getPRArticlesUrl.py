@@ -36,8 +36,6 @@ def oneTypeArticleUrlCrawler(articleUrlList, PR_homeUrl, senateHomeUrl, pageInde
 	try:
 		temp_url = PR_homeUrl + "?page=" + pageIndex
 		unicodePage=getunicodePage(temp_url)
-		if 'WEBSITE TEMPORARILY UNAVAILABLE DUE TO MAINTENANCE' in unicodePage:
-			unicodePage=getunicodePage(temp_url)
 		target='<td class="recordListTitle"><a href="(.*?)"'
 		myItems = re.findall(target,unicodePage,re.DOTALL)
 		tempUrlList = []
@@ -93,7 +91,11 @@ def threeTypeArticleUrlCrawler(articleUrlList, PR_homeUrl, senateHomeUrl, pageIn
 			myItems = re.findall(target,unicodePage,re.DOTALL)
 			tempUrlList = []
 			for eachitem in myItems:
-				tempUrlList.append(PR_homeUrl + '/' + eachitem.strip())
+				if 'scott.senate' not in PR_homeUrl:
+					if not ('billnelson' in PR_homeUrl and '-' not in eachitem):
+						tempUrlList.append(PR_homeUrl + '/' + eachitem.strip())
+				else:
+					tempUrlList.append(PR_homeUrl[0:len(PR_homeUrl)-1] + '/' + eachitem.strip())
 		target='\?page=(\d{1,10})">next'
 		myItems = re.findall(target,unicodePage,re.IGNORECASE)
 		print myItems
@@ -113,7 +115,7 @@ def fourTypeArticleUrlCrawler(articleUrlList, PR_homeUrl, senateHomeUrl, pageInd
 		myItems = list(set(myItems))
 		tempUrlList = []
 		for eachitem in myItems:
-			tempUrlList.append(PR_homeUrl + '&id=' + eachitem)
+			tempUrlList.append(PR_homeUrl[0:len(PR_homeUrl)-1] + '&id=' + eachitem)
 		target='&pg=(.*?)">next'
 		myItems = re.findall(target,unicodePage,re.IGNORECASE)
 		print myItems
