@@ -40,7 +40,11 @@ def oneTypeArticleUrlCrawler(articleUrlList, PR_homeUrl, senateHomeUrl, pageInde
 		myItems = re.findall(target,unicodePage,re.DOTALL)
 		tempUrlList = []
 		for eachitem in myItems:
-			tempUrlList.append(eachitem)
+			if 'http' in eachitem:
+				tempUrlList.append(eachitem)
+			else:
+				startIndex = senateHomeUrl.index('.gov')
+				tempUrlList.append(senateHomeUrl[0:startIndex+4] + eachitem)
 		target='page=(.*?)"(.*?)>Next'
 		myItems = re.findall(target,unicodePage,re.IGNORECASE)
 		print myItems
