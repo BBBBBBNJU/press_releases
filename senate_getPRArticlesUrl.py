@@ -88,6 +88,8 @@ def threeTypeArticleUrlCrawler(articleUrlList, PR_homeUrl, senateHomeUrl, pageIn
 			startIndex = PR_homeUrl.index('gov/')
 			temp_pattern = PR_homeUrl[startIndex + 4 : len(PR_homeUrl)]
 			target = temp_pattern + '/(.*?)"'
+			if 'scott.senate' in PR_homeUrl:
+				target = temp_pattern[0:len(temp_pattern)-1] + '/(.*?)"'
 			myItems = re.findall(target,unicodePage,re.DOTALL)
 			tempUrlList = []
 			for eachitem in myItems:
