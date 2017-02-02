@@ -34,7 +34,7 @@ def getName(unicodePage):
 	target='https://www.congress.gov/(.*?)">(.*?)</a>'
 	myItems = re.findall(target,unicodePage,re.DOTALL)
 	job_name = myItems[0][1].split()
-	name = job_name[1:len(job_name)].join(' ')
+	name = ' '.join(job_name[1:len(job_name)])
 	return name
 
 def getParty(unicodePage):
@@ -50,8 +50,8 @@ def getServeTime(unicodePage):
 	return serveTime
 
 def getCongressPeopleData(baseUrl, pageIndex):
-	congressPeopleDict = {}
-	try:
+		congressPeopleDict = {}
+	# try:
 		temp_url = baseUrl + pageIndex
 		unicodePage=getunicodePage(temp_url)
 		target='<span class="result-heading"><a href="(.*?)</ul>'
@@ -63,15 +63,15 @@ def getCongressPeopleData(baseUrl, pageIndex):
 			tempServeTime = getServeTime(eachitem)
 			congressPeopleDict[tempName] = [tempParty, tempServeTime]
 		return congressPeopleDict
-	except:
-		return congressPeopleDict
+	# except:
+	# 	return congressPeopleDict
 
 
 congressNumber = sys.argv[1]
 baseUrl = 'https://www.congress.gov/members?q={"congress":"'+congressNumber+'"}&page='
 congressPeopleDict = {}
 for i in range(6):
-	congressPeopleDict.update(getCongressPeopleData(baseUrl, str(i)))
+	congressPeopleDict.update(getCongressPeopleData(baseUrl, str(i+1)))
 cPickle.dump(congressPeopleDict,open('congressPeopleDict_'+congressNumber,'wb'))
 print len(congressPeopleDict)
 print congressPeopleDict['Thune, John']
